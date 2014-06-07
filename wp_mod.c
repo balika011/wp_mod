@@ -5,40 +5,15 @@
 #include <linux/kallsyms.h>
 #include <asm/mmu_writeable.h>
 
-#define DRIVER_AUTHOR "flar2"
+#define DRIVER_AUTHOR "flar2 / MohammadAG"
 #define DRIVER_DESCRIPTION "Defeat system write protect"
-#define DRIVER_VERSION "4.1"
+#define DRIVER_VERSION "0.1"
 
-#define MSM_MAX_PARTITIONS 48
 #define HIJACK_SIZE 12
 
-struct htc_emmc_partition {
-	unsigned int dev_num;
-	unsigned int partition_size;
-	char partition_name[16];
-};
-
-static struct htc_emmc_partition emmc_partitions[MSM_MAX_PARTITIONS];
-
-
-static int my_get_partition_num_by_name(char *name)
+static int sony_ric_enabled(void)
 {
-	struct htc_emmc_partition *ptn = emmc_partitions;
-	int i;
-	char caller[80];
-
-	sprintf(caller, "%ps", __builtin_return_address(0));
-
-	if (strcmp("generic_make_request_checks", caller) == 0) {
-		return 666;
-	} else {
-		for (i = 0; i < MSM_MAX_PARTITIONS && ptn->partition_name; i++, ptn++) {
-			if (strcmp(ptn->partition_name, name) == 0)
-				return ptn->dev_num;
-		}
-	}
-
-	return -1;
+	return 0;
 }
 
 inline void arm_write_hook ( void *target, char *code )
@@ -50,7 +25,6 @@ inline void arm_write_hook ( void *target, char *code )
     mem_text_write_kernel_word(target_arm + 1, *(code_arm + 1));
     mem_text_write_kernel_word(target_arm + 2, *(code_arm + 2));
 }
-
 
 void hijack_start ( void *target, void *new )
 {
@@ -68,11 +42,11 @@ void hijack_start ( void *target, void *new )
 
 static int __init wp_mod_init(void)
 {
-	pr_info("wp_mod: %s version %s\n", DRIVER_DESCRIPTION,
+	pr_info("wp_xperia_mod: %s version %s\n", DRIVER_DESCRIPTION,
 		DRIVER_VERSION);
-	pr_info("wp_mod: by %s\n", DRIVER_AUTHOR);
+	pr_info("wp_xperia_mod: by %s\n", DRIVER_AUTHOR);
 
-	hijack_start((void *)kallsyms_lookup_name("get_partition_num_by_name"), &my_get_partition_num_by_name);
+	hijack_start((void *)kallsyms_lookup_name("sony_ric_enabled"), &sony_ric_enabled);
 
 	return 0;
 }
