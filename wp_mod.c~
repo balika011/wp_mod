@@ -18,6 +18,16 @@
 #include <linux/kallsyms.h>
 #include <asm/mmu_writeable.h>
 
+inline void arm_write_hook(void *target, char *code)
+{
+    unsigned long *target_arm = (unsigned long *)target;
+    unsigned long *code_arm = (unsigned long *)code;
+
+    mem_text_write_kernel_word(target_arm, *code_arm);
+    mem_text_write_kernel_word(target_arm + 1, *(code_arm + 1));
+    mem_text_write_kernel_word(target_arm + 2, *(code_arm + 2));
+}
+
 void hook_func(const char* name, const void *new)
 {
 	int i;
